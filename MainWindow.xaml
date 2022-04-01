@@ -1,0 +1,25 @@
+﻿<Window x:Class="CefDemo.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:wpf="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
+        xmlns:local="clr-namespace:CefDemo"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Button Grid.Column="0" Height="30" Width="100" HorizontalAlignment="Center" Click="Btn_clicked">CallWebBrowser</Button>
+        <TextBlock IsHitTestVisible="False">我是窗口</TextBlock>
+        <Grid Grid.Column="1" x:Name="ctrlBrowserGrid" Width="auto">
+            <!--<Button Panel.ZIndex="1" Grid.Column="0" Height="30" Width="100" HorizontalAlignment="Left" Click="Btn_clicked">CallWebBrowser</Button>-->
+
+            <!--<wpf:ChromiumWebBrowser x:Name="Browser"/>-->
+        </Grid>
+        <TextBlock IsHitTestVisible="False" Grid.Column="1">我是CEF</TextBlock>
+    </Grid>
+
+</Window>

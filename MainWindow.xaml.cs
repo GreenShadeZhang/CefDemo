@@ -50,6 +50,7 @@ namespace CefDemo
             //MyBrowser.Address = "https://bing.com";    //"http://ppos.top:8080";
             MyBrowser.Address = pagepath;
 
+            //注册JS调用的方法
             MyBrowser.JavascriptObjectRepository.Settings.LegacyBindingEnabled = true;
             MyBrowser.JavascriptObjectRepository.Register(
                 "callbackObj",
@@ -78,6 +79,7 @@ namespace CefDemo
 
         private void Btn_clicked(object sender, RoutedEventArgs e)
         {
+            //调用JS方法
             MyBrowser.ExecuteScriptAsync("alert_msg('WPF呼叫HTML')");
         }
     }

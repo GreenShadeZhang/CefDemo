@@ -2,20 +2,24 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <Platforms>AnyCPU</Platforms>
+    <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CefSharp.Common.NETCore" Version="99.2.140" />
-    <PackageReference Include="CefSharp.Wpf" Version="99.2.140" />
+    <Content Include="Icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="html\index.html">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+	  <PackageReference Include="CefSharp.Wpf.NetCore" Version="131.3.10" />
+	  <PackageReference Include="System.Speech" Version="9.0.0" />
   </ItemGroup>
-
+	<Target Name="CopyVueFiles" AfterTargets="Build">
+		<ItemGroup>
+			<VueFiles Include="$(ProjectDir)vue-dist\**" />
+		</ItemGroup>
+		<Copy SourceFiles="@(VueFiles)" DestinationFolder="$(OutputPath)vue-dist\%(RecursiveDir)" />
+	</Target>
 </Project>

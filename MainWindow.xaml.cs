@@ -1,19 +1,10 @@
 ﻿using CefSharp;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Speech.Recognition;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace CefDemo
 {
@@ -23,17 +14,20 @@ namespace CefDemo
     public partial class MainWindow : Window
     {
         private CollapsableChromiumWebBrowser MyBrowser = null;
+        private SpeechRecognitionEngine recognizer;
+        private bool isFullscreen;
         public MainWindow()
         {
             InitializeComponent();
             //Browser.Load("http://ppos.top:8080"); 通过Xaml加载控件ChromiumWebBrowser比较耗性能
 
             InitWebBrowser();
+            InitializeSpeech();
         }
 
         private void InitWebBrowser()
         {
-            string pagepath = string.Format(@"{0}html\index.html", AppDomain.CurrentDomain.BaseDirectory);
+            string pagepath = string.Format(@"{0}vue-dist\index.html", AppDomain.CurrentDomain.BaseDirectory);
             if (!File.Exists(pagepath))
             {
                 MessageBox.Show("HTML不存在:" + pagepath);
@@ -52,11 +46,21 @@ namespace CefDemo
 
             //注册JS调用的方法
             MyBrowser.JavascriptObjectRepository.Settings.LegacyBindingEnabled = true;
-            MyBrowser.JavascriptObjectRepository.Register(
-                "callbackObj",
-                new CallbackObjectForJs(),
-                options: BindingOptions.DefaultBinder
-            );
+
+            MyBrowser.JavascriptObjectRepository.Register("speechBridge", new SpeechBridge(this), options: BindingOptions.DefaultBinder);
+
+        }
+
+        private void InitializeSpeech()
+        {
+            recognizer = new SpeechRecognitionEngine();
+            recognizer.LoadGrammar(new DictationGrammar());
+            recognizer.SpeechRecognized += (s, e) =>
+            {
+                string text = e.Result.Text;
+                MyBrowser.ExecuteScriptAsync($"window.updateRecognizedText('{text}')");
+            };
+            recognizer.SetInputToDefaultAudioDevice();
         }
 
         private async void Browser_FrameLoadEnd(object sender, FrameLoadEndEventArgs e)
@@ -69,7 +73,7 @@ namespace CefDemo
             Cef.GetGlobalCookieManager().VisitAllCookies(visitor);
         }
 
-        private async void RecieveCookie(object obj)
+        private void RecieveCookie(object obj)
         {
             string cookies = (string)obj;
             //Console.WriteLine("cookies:" + cookies);
@@ -77,18 +81,98 @@ namespace CefDemo
             return;
         }
 
-        private void Btn_clicked(object sender, RoutedEventArgs e)
+        public void StartRecognition()
         {
-            //调用JS方法
-            MyBrowser.ExecuteScriptAsync("alert_msg('WPF呼叫HTML')");
+            recognizer.RecognizeAsync(RecognizeMode.Multiple);
+        }
+
+        public void StopRecognition()
+        {
+            recognizer.RecognizeAsyncStop();
+            string text = "我是测试文本";
+            MyBrowser.ExecuteScriptAsync($"window.updateRecognizedText('{text}')");
+        }
+
+        private void CustomTitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // 允许拖动窗口
+            this.DragMove();
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            // 关闭窗口
+            this.Close();
+        }
+
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            // 最小化窗口
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void MaximizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            // 切换窗口最大化/还原
+            if (this.WindowState == WindowState.Maximized)
+            {
+                this.WindowState = WindowState.Normal;
+            }
+            else
+            {
+                this.WindowState = WindowState.Maximized;
+            }
+        }
+
+        private void FullscreenButton_Click(object sender, RoutedEventArgs e)
+        {
+            // 切换全屏/退出全屏
+            ToggleFullscreen();
+        }
+
+        private void ToolsButton_Click(object sender, RoutedEventArgs e)
+        {
+            // 显示工具菜单或执行其他操作
+            MyBrowser.ShowDevTools();
+        }
+
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape && isFullscreen)
+            {
+                ToggleFullscreen();
+            }
+        }
+
+        private void ToggleFullscreen()
+        {
+            if (isFullscreen)
+            {
+                this.WindowState = WindowState.Normal;
+                this.WindowStyle = WindowStyle.None;
+                this.ResizeMode = ResizeMode.CanResize;
+                this.Topmost = false;
+                isFullscreen = false;
+                CustomTitleBar.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                this.WindowState = WindowState.Maximized;
+                this.WindowStyle = WindowStyle.None;
+                this.ResizeMode = ResizeMode.NoResize;
+                this.Topmost = true;
+                isFullscreen = true;
+                CustomTitleBar.Visibility = Visibility.Collapsed;
+            }
         }
     }
 
-    internal class CallbackObjectForJs
+    public class SpeechBridge
     {
-        public void showMessage(string msg)
-        {
-            MessageBox.Show(msg);
-        }
+        private readonly MainWindow _window;
+        public SpeechBridge(MainWindow window) => _window = window;
+
+        public void StartRecording() => _window.StartRecognition();
+        public void StopRecording() => _window.StopRecognition();
     }
 }

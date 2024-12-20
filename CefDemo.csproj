@@ -5,11 +5,11 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <Platforms>AnyCPU</Platforms>
-    <ApplicationIcon>Icon.ico</ApplicationIcon>
+    <ApplicationIcon>pig.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Icon.ico" />
+    <Content Include="pig.ico" />
   </ItemGroup>
 
   <ItemGroup>
